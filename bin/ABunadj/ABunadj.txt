@@ -1,0 +1,37 @@
+model
+{
+	### Model for IPD
+	for (j in 1:n.patients){
+		Y[j] ~ dbern(p[j])   # Likelihood
+		logit(p[j]) <- theta[treatment[j]] + nu[arm[j]]  # Linear predictor
+	}
+
+	for (k in 1:n.arms){
+		nu[k] ~ dnorm(0, prec.nu)  # Random effects
+	}
+
+	### Model for AD
+	for (k in 1:n.arms.ad){
+		r[k] ~ dbin(p.ad[k], n[k])  # Likelihood
+		logit(p.ad[k]) <- theta[treatment.ad[k]] + nu[k + n.arms]  # Linear predictor
+		nu[k + n.arms] ~ dnorm(0, prec.nu)  # Random effects
+	}
+
+
+	### Priors
+	prec.nu <- 1 / (sigma.nu * sigma.nu)
+	sigma.nu ~ dunif(1.0E-2, 10)
+	
+	for (t in 1:n.treatments){
+		theta[t] ~ dnorm(0, 1.0E-6)
+	}
+
+
+  ### Estimands
+	d[1] <- 0
+	for (t in 2:n.treatments){
+		d[t] <- theta[t] - theta[1]
+	}
+	
+}
+

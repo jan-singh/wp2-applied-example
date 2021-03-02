@@ -1,0 +1,49 @@
+model
+{
+	### Model for IPD
+	for (j in 1:n.patients){
+		Y[j] ~ dbern(p[j])  # Likelihood
+		logit(p[j]) <- phi[study[j]] + delta[arm[j]] * 
+		  (1 - equals(treatment[j], baseline[j]))  # Linear predictor
+	}
+	
+	for (i in 1:n.studies){
+		phi[i] ~ dnorm(m.phi, prec.phi)  # Baseline effects
+	}
+	
+	for (k in 1:n.arms){
+		delta[k] ~ dnorm(m.delta[k], prec.delta)  # Relative effects
+		m.delta[k] <- d[treatment.arm[k]] - d[baseline.arm[k]]  # Basic parameters
+	}
+	
+	### Model for AD
+	for (k in 1:n.arms.ad){
+		r[k] ~ dbin(p.ad[k], n[k])  # Likelihood
+		logit(p.ad[k]) <- phi[study.ad[k] + n.studies] + delta[k + n.arms] * 
+		  (1 - equals(treatment.ad[k], baseline.ad[k]))  # Linear predictor
+		delta[k + n.arms] ~ dnorm(m.delta.ad[k], prec.delta)  # Relative effects
+		m.delta.ad[k] <- d[treatment.ad[k]] - d[baseline.ad[k]]  # Basic parameters
+	}
+
+	for (i in 1:n.studies.ad){
+		phi[i + n.studies] ~ dnorm(m.phi, prec.phi)  # Baseline effects
+	}
+
+
+  ### Priors
+  m.phi ~ dnorm(0, 1.0E-2)
+	prec.phi <- 1 / (sigma.phi * sigma.phi)
+	sigma.phi ~ dunif(1.0E-2, 2)
+
+	prec.delta <- 1 / (sigma.delta * sigma.delta)
+	sigma.delta ~ dunif(1.0E-2, 2)
+
+
+	### Estimands
+	d[1] <- 0
+	for (t in 2:n.treatments){
+		d[t] ~ dnorm(0, 1.0E-2)
+	}
+	
+}
+
