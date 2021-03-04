@@ -23,7 +23,7 @@ model
 	sigma.nu ~ dunif(1.0E-2, 10)
 	
 	for (t in 1:n.treatments){
-		theta[t] ~ dnorm(0, 1.0E-6)
+		theta[t] ~ dnorm(0, 1.0E-2)
 	}
 
 
